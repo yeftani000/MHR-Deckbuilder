@@ -2,40 +2,45 @@ plugins { id 'com.android.application' }
 
 // The web app the wrapper opens. Set by the GitHub variable APP_URL (or -PAPP_URL locally).
 def appUrl = (System.getenv('APP_URL') ?: project.findProperty('APP_URL') ?: 'https://script.google.com/macros/s/REPLACE_ME/exec').toString().trim().replace('"', '')
-def hasKeystore = System.getenv('KEYSTORE_FILE')
+def keystoreFile = System.getenv('KEYSTORE_FILE')
+def hasKeystore = keystoreFile != null && !keystoreFile.isEmpty()
+def versionCodeValue = Integer.parseInt((System.getenv('VERSION_CODE') ?: '1').trim() ?: '1')
+def versionNameValue = (System.getenv('VERSION_NAME') ?: '1.0').trim()
 
 android {
-    namespace 'com.herorush.deckbuilder'
-    compileSdk 34
+    namespace = 'com.herorush.deckbuilder'
+    compileSdk = 34
 
     defaultConfig {
-        applicationId 'com.herorush.deckbuilder'
-        minSdk 26
-        targetSdk 34
-        versionCode (System.getenv('VERSION_CODE') ?: '1') as int
-        versionName System.getenv('VERSION_NAME') ?: '1.0'
+        applicationId = 'com.herorush.deckbuilder'
+        minSdk = 26
+        targetSdk = 34
+        versionCode = versionCodeValue
+        versionName = versionNameValue
         buildConfigField 'String', 'APP_URL', "\"${appUrl}\""
     }
-    buildFeatures { buildConfig true }
+    buildFeatures {
+        buildConfig = true
+    }
     signingConfigs {
         release {
             if (hasKeystore) {
-                storeFile file(System.getenv('KEYSTORE_FILE'))
-                storePassword System.getenv('KEYSTORE_PASSWORD')
-                keyAlias System.getenv('KEY_ALIAS')
-                keyPassword System.getenv('KEY_PASSWORD')
+                storeFile = file(keystoreFile)
+                storePassword = System.getenv('KEYSTORE_PASSWORD')
+                keyAlias = System.getenv('KEY_ALIAS')
+                keyPassword = System.getenv('KEY_PASSWORD')
             }
         }
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
             // Without a keystore the APK is signed with the debug key: fine for sideloading, not for Play Store.
-            signingConfig hasKeystore ? signingConfigs.release : signingConfigs.debug
+            signingConfig = hasKeystore ? signingConfigs.release : signingConfigs.debug
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
